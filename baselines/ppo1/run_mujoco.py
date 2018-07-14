@@ -21,8 +21,11 @@ def train(env_id, num_timesteps, seed):
     env.close()
 
 def main():
+    # TODO: investigate mujoco_arg_parser();
     args = mujoco_arg_parser().parse_args()
+    # TODO: investigate logger
     logger.configure()
+    # TODO: investigate train
     train(args.env, num_timesteps=args.num_timesteps, seed=args.seed)
 
 if __name__ == '__main__':
