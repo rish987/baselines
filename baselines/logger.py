@@ -295,9 +295,11 @@ class Logger(object):
 
     def __init__(self, dir, output_formats):
         self.name2val = defaultdict(float)  # values this iteration
+        # number of values stored at a particular name in yielding the mean
         self.name2cnt = defaultdict(int)
         self.level = INFO
         self.dir = dir
+        #TODO: investigate output_formats
         self.output_formats = output_formats
 
     # Logging API, forwarded
@@ -305,7 +307,9 @@ class Logger(object):
     def logkv(self, key, val):
         self.name2val[key] = val
 
+    # store the running mean of the values stored into key, incremented by val
     def logkv_mean(self, key, val):
+        # nullify entry if key is None
         if val is None:
             self.name2val[key] = None
             return

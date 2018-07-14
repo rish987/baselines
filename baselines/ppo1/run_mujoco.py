@@ -21,7 +21,6 @@ def train(env_id, num_timesteps, seed):
     env.close()
 
 def main():
-    # TODO: investigate mujoco_arg_parser();
     args = mujoco_arg_parser().parse_args()
     # TODO: investigate logger
     logger.configure()
