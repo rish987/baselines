@@ -51,7 +51,9 @@ def huber_loss(x, delta=1.0):
 def make_session(num_cpu=None, make_default=False, graph=None):
     """Returns a session that will use <num_cpu> CPU's only"""
     if num_cpu is None:
+        # extract a preset number of CPUs, or use the actual number of CPUs
         num_cpu = int(os.getenv('RCALL_NUM_CPU', multiprocessing.cpu_count()))
+    # enable tensorflow to use secified number of CPUs
     tf_config = tf.ConfigProto(
         inter_op_parallelism_threads=num_cpu,
         intra_op_parallelism_threads=num_cpu)

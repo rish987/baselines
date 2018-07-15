@@ -32,6 +32,7 @@ def make_mujoco_env(env_id, seed):
     Create a wrapped, monitored gym.Env for MuJoCo.
     """
     rank = MPI.COMM_WORLD.Get_rank()
+    # use a different seed for every processor
     set_global_seeds(seed + 10000 * rank)
     env = gym.make(env_id)
     env = Monitor(env, os.path.join(logger.get_dir(), str(rank)))

@@ -20,13 +20,16 @@ class Monitor(Wrapper):
             self.f = None
             self.logger = None
         else:
+            # add monitor extention if not already there
             if not filename.endswith(Monitor.EXT):
                 if osp.isdir(filename):
                     filename = osp.join(filename, Monitor.EXT)
                 else:
                     filename = filename + "." + Monitor.EXT
             self.f = open(filename, "wt")
+            #TODO: investigate env.spec and env.spec.id
             self.f.write('#%s\n'%json.dumps({"t_start": self.tstart, 'env_id' : env.spec and env.spec.id}))
+            #TODO: investigate csv
             self.logger = csv.DictWriter(self.f, fieldnames=('r', 'l', 't')+reset_keywords+info_keywords)
             self.logger.writeheader()
             self.f.flush()
@@ -35,6 +38,7 @@ class Monitor(Wrapper):
         self.info_keywords = info_keywords
         self.allow_early_resets = allow_early_resets
         self.rewards = None
+        # environment must be initially reset
         self.needs_reset = True
         self.episode_rewards = []
         self.episode_lengths = []

@@ -37,6 +37,7 @@ class HumanOutputFormat(KVWriter, SeqWriter):
         # Create strings for printing
         key2str = {}
         for (key, val) in sorted(kvs.items()):
+            # apply special formatting to floats
             if isinstance(val, float):
                 valstr = '%-8.3g' % (val,)
             else:
@@ -298,6 +299,8 @@ class Logger(object):
         # number of values stored at a particular name in yielding the mean
         self.name2cnt = defaultdict(int)
         self.level = INFO
+        #TODO: investigate dir usage - what was passed in, and where is this
+        # used?
         self.dir = dir
         #TODO: investigate output_formats
         self.output_formats = output_formats
@@ -318,14 +321,18 @@ class Logger(object):
         self.name2cnt[key] = cnt + 1
 
     def dumpkvs(self):
+        # if this logger is disabled, do not dump
         if self.level == DISABLED: return
         for fmt in self.output_formats:
+            # only use formatter that logs kvs
+            #TODO: investigate KVWriter
             if isinstance(fmt, KVWriter):
                 fmt.writekvs(self.name2val)
         self.name2val.clear()
         self.name2cnt.clear()
 
     def log(self, *args, level=INFO):
+        # only log if this log is of the appropriate level
         if self.level <= level:
             self._do_log(args)
 
@@ -338,13 +345,17 @@ class Logger(object):
         return self.dir
 
     def close(self):
+        # close all formats
         for fmt in self.output_formats:
             fmt.close()
 
     # Misc
     # ----------------------------------------
+    # private method that always does a log
     def _do_log(self, args):
         for fmt in self.output_formats:
+            # only log using SeqWriter
+            #TODO: investigate SeqWriter
             if isinstance(fmt, SeqWriter):
                 fmt.writeseq(map(str, args))
 
@@ -359,17 +370,21 @@ def configure(dir=None, format_strs=None):
     assert isinstance(dir, str)
     os.makedirs(dir, exist_ok=True)
 
+    # indicator of what processor is logging
     log_suffix = ''
     from mpi4py import MPI
     rank = MPI.COMM_WORLD.Get_rank()
     if rank > 0:
+        # indicate what processor is logging
         log_suffix = "-rank%03i" % rank
 
     if format_strs is None:
+        # rank 0 has special logging privileges
         if rank == 0:
             format_strs = os.getenv('OPENAI_LOG_FORMAT', 'stdout,log,csv').split(',')
         else:
             format_strs = os.getenv('OPENAI_LOG_FORMAT_MPI', 'log').split(',')
+    # don't filter out anything
     format_strs = filter(None, format_strs)
     output_formats = [make_output_format(f, dir, log_suffix) for f in format_strs]
 
