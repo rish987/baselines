@@ -106,9 +106,11 @@ def learn(env, policy_fn, *,
     # get a 2d placeholder for a 1d action
     ac = pi.pdtype.sample_placeholder([None])
 
-    # get tensor for the KL-divergence between the old and new gaussians
+    # get tensor for the KL-divergence between the old and new action gaussians
     kloldnew = oldpi.pd.kl(pi.pd)
+    # get tensor for the entropy of the new action gaussian
     ent = pi.pd.entropy()
+    # these should do nothing
     meankl = tf.reduce_mean(kloldnew)
     meanent = tf.reduce_mean(ent)
     pol_entpen = (-entcoeff) * meanent
@@ -124,6 +126,7 @@ def learn(env, policy_fn, *,
 
     var_list = pi.get_trainable_variables()
     lossandgrad = U.function([ob, ac, atarg, ret, lrmult], losses + [U.flatgrad(total_loss, var_list)])
+    #TODO: investigate MpiAdam
     adam = MpiAdam(var_list, epsilon=adam_epsilon)
 
     assign_old_eq_new = U.function([],[], updates=[tf.assign(oldv, newv)
