@@ -126,9 +126,9 @@ def learn(env, policy_fn, *,
 
     var_list = pi.get_trainable_variables()
     lossandgrad = U.function([ob, ac, atarg, ret, lrmult], losses + [U.flatgrad(total_loss, var_list)])
-    #TODO: investigate MpiAdam
     adam = MpiAdam(var_list, epsilon=adam_epsilon)
 
+    #TODO: investigate here
     assign_old_eq_new = U.function([],[], updates=[tf.assign(oldv, newv)
         for (oldv, newv) in zipsame(oldpi.get_variables(), pi.get_variables())])
     compute_losses = U.function([ob, ac, atarg, ret, lrmult], losses)
