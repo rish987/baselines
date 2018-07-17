@@ -237,6 +237,7 @@ class BernoulliPd(Pd):
 
 def make_pdtype(ac_space):
     from gym import spaces
+    # dealing with a continuous action space
     if isinstance(ac_space, spaces.Box):
         assert len(ac_space.shape) == 1
         return DiagGaussianPdType(ac_space.shape[0])

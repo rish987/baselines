@@ -58,6 +58,7 @@ def make_session(num_cpu=None, make_default=False, graph=None):
         inter_op_parallelism_threads=num_cpu,
         intra_op_parallelism_threads=num_cpu)
     if make_default:
+        #TODO: investigate tf.InteractiveSession (low priority)
         return tf.InteractiveSession(config=tf_config, graph=graph)
     else:
         return tf.Session(config=tf_config, graph=graph)
@@ -168,13 +169,18 @@ def function(inputs, outputs, updates=None, givens=None):
 
 class _Function(object):
     def __init__(self, inputs, outputs, updates, givens):
+        # ensure all inputs are feedable or constants
         for inpt in inputs:
             if not hasattr(inpt, 'make_feed_dict') and not (type(inpt) is tf.Tensor and len(inpt.op.inputs) == 0):
                 assert False, "inputs should all be placeholders, constants, or have a make_feed_dict method"
         self.inputs = inputs
+        # if updates is None, use empty list
         updates = updates or []
+        # enforce all updates happen together
         self.update_group = tf.group(*updates)
+        # items to run
         self.outputs_update = list(outputs) + [self.update_group]
+        # if givens is None, use empty dictionary
         self.givens = {} if givens is None else givens
 
     def _feed_input(self, feed_dict, inpt, value):

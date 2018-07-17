@@ -77,6 +77,7 @@ def add_vtarg_and_adv(seg, gamma, lam):
         gaelam[t] = lastgaelam = delta + gamma * lam * nonterminal * lastgaelam
     seg["tdlamret"] = seg["adv"] + seg["vpred"]
 
+#TODO: investigate (review function after reading)
 def learn(env, policy_fn, *,
         timesteps_per_actorbatch, # timesteps per actor per update
         clip_param, entcoeff, # clipping parameter epsilon, entropy coeff
@@ -96,12 +97,16 @@ def learn(env, policy_fn, *,
     atarg = tf.placeholder(dtype=tf.float32, shape=[None]) # Target advantage function (if applicable)
     ret = tf.placeholder(dtype=tf.float32, shape=[None]) # Empirical return
 
-    lrmult = tf.placeholder(name='lrmult', dtype=tf.float32, shape=[]) # learning rate multiplier, updated with schedule
+    # learning rate multiplier, updated according to the schedule
+    lrmult = tf.placeholder(name='lrmult', dtype=tf.float32, shape=[]) 
     clip_param = clip_param * lrmult # Annealed cliping parameter epislon
 
+    # retrieve ob placeholder
     ob = U.get_placeholder_cached(name="ob")
+    # get a 2d placeholder for a 1d action
     ac = pi.pdtype.sample_placeholder([None])
 
+    # get tensor for the KL-divergence between the old and new gaussians
     kloldnew = oldpi.pd.kl(pi.pd)
     ent = pi.pd.entropy()
     meankl = tf.reduce_mean(kloldnew)
