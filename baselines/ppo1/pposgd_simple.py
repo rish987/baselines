@@ -62,6 +62,7 @@ def traj_segment_generator(pi, env, horizon, stochastic):
         t += 1
 
 def add_vtarg_and_adv(seg, gamma, lam):
+    #TODO: investigate (review) TD(lambda) and GAE(lambda)
     """
     Compute target value using TD(lambda) estimator, and advantage with GAE(lambda)
     """
@@ -75,6 +76,8 @@ def add_vtarg_and_adv(seg, gamma, lam):
         nonterminal = 1-new[t+1]
         delta = rew[t] + gamma * vpred[t+1] * nonterminal - vpred[t]
         gaelam[t] = lastgaelam = delta + gamma * lam * nonterminal * lastgaelam
+    # use a value function that trades off between bias and variance according
+    # to lambda
     seg["tdlamret"] = seg["adv"] + seg["vpred"]
 
 #TODO: investigate (review function after reading)
@@ -128,7 +131,6 @@ def learn(env, policy_fn, *,
     lossandgrad = U.function([ob, ac, atarg, ret, lrmult], losses + [U.flatgrad(total_loss, var_list)])
     adam = MpiAdam(var_list, epsilon=adam_epsilon)
 
-    #TODO: investigate here
     assign_old_eq_new = U.function([],[], updates=[tf.assign(oldv, newv)
         for (oldv, newv) in zipsame(oldpi.get_variables(), pi.get_variables())])
     compute_losses = U.function([ob, ac, atarg, ret, lrmult], losses)
@@ -170,6 +172,7 @@ def learn(env, policy_fn, *,
         logger.log("********** Iteration %i ************"%iters_so_far)
 
         seg = seg_gen.__next__()
+        #TODO: investigate add_vtarg_and_adv
         add_vtarg_and_adv(seg, gamma, lam)
 
         # ob, ac, atarg, ret, td1ret = map(np.concatenate, (obs, acs, atargs, rets, td1rets))
