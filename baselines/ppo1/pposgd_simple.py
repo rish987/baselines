@@ -172,7 +172,6 @@ def learn(env, policy_fn, *,
         logger.log("********** Iteration %i ************"%iters_so_far)
 
         seg = seg_gen.__next__()
-        #TODO: investigate add_vtarg_and_adv
         add_vtarg_and_adv(seg, gamma, lam)
 
         # ob, ac, atarg, ret, td1ret = map(np.concatenate, (obs, acs, atargs, rets, td1rets))
@@ -192,6 +191,7 @@ def learn(env, policy_fn, *,
             losses = [] # list of tuples, each of which gives the loss for a minibatch
             for batch in d.iterate_once(optim_batchsize):
                 *newlosses, g = lossandgrad(batch["ob"], batch["ac"], batch["atarg"], batch["vtarg"], cur_lrmult)
+                #TODO: investigate adam.update()
                 adam.update(g, optim_stepsize * cur_lrmult)
                 losses.append(newlosses)
             logger.log(fmt_row(13, np.mean(losses, axis=0)))

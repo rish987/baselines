@@ -21,17 +21,27 @@ class MpiAdam(object):
     def update(self, localg, stepsize):
         if self.t % 100 == 0:
             self.check_synced()
+
+        # combine all distributed batch gradients into one
         localg = localg.astype('float32')
         globalg = np.zeros_like(localg)
         self.comm.Allreduce(localg, globalg, op=MPI.SUM)
+
+        # take the average of all distributed batch gradients
         if self.scale_grad_by_procs:
             globalg /= self.comm.Get_size()
 
         self.t += 1
+
+        # correct for zero-bias
         a = stepsize * np.sqrt(1 - self.beta2**self.t)/(1 - self.beta1**self.t)
+
         self.m = self.beta1 * self.m + (1 - self.beta1) * globalg
         self.v = self.beta2 * self.v + (1 - self.beta2) * (globalg * globalg)
+
         step = (- a) * self.m / (np.sqrt(self.v) + self.epsilon)
+
+        # perform parameter update
         self.setfromflat(self.getflat() + step)
 
     def sync(self):
