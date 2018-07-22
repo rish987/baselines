@@ -23,13 +23,13 @@ class Monitor(Wrapper):
             # add monitor extention if not already there
             if not filename.endswith(Monitor.EXT):
                 if osp.isdir(filename):
+                    # use extension as filename
                     filename = osp.join(filename, Monitor.EXT)
                 else:
                     filename = filename + "." + Monitor.EXT
             self.f = open(filename, "wt")
-            #TODO: investigate env.spec and env.spec.id
             self.f.write('#%s\n'%json.dumps({"t_start": self.tstart, 'env_id' : env.spec and env.spec.id}))
-            #TODO: investigate csv
+            print("Monitor output file: {0}".format(filename))
             self.logger = csv.DictWriter(self.f, fieldnames=('r', 'l', 't')+reset_keywords+info_keywords)
             self.logger.writeheader()
             self.f.flush()

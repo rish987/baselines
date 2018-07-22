@@ -58,7 +58,6 @@ def make_session(num_cpu=None, make_default=False, graph=None):
         inter_op_parallelism_threads=num_cpu,
         intra_op_parallelism_threads=num_cpu)
     if make_default:
-        #TODO: investigate tf.InteractiveSession (low priority)
         return tf.InteractiveSession(config=tf_config, graph=graph)
     else:
         return tf.Session(config=tf_config, graph=graph)

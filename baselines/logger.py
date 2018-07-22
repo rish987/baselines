@@ -299,10 +299,7 @@ class Logger(object):
         # number of values stored at a particular name in yielding the mean
         self.name2cnt = defaultdict(int)
         self.level = INFO
-        #TODO: investigate dir usage - what was passed in, and where is this
-        # used?
         self.dir = dir
-        #TODO: investigate output_formats
         self.output_formats = output_formats
 
     # Logging API, forwarded
@@ -325,7 +322,6 @@ class Logger(object):
         if self.level == DISABLED: return
         for fmt in self.output_formats:
             # only use formatter that logs kvs
-            #TODO: investigate KVWriter
             if isinstance(fmt, KVWriter):
                 fmt.writekvs(self.name2val)
         self.name2val.clear()
@@ -355,7 +351,6 @@ class Logger(object):
     def _do_log(self, args):
         for fmt in self.output_formats:
             # only log using SeqWriter
-            #TODO: investigate SeqWriter
             if isinstance(fmt, SeqWriter):
                 fmt.writeseq(map(str, args))
 
@@ -384,7 +379,7 @@ def configure(dir=None, format_strs=None):
             format_strs = os.getenv('OPENAI_LOG_FORMAT', 'stdout,log,csv').split(',')
         else:
             format_strs = os.getenv('OPENAI_LOG_FORMAT_MPI', 'log').split(',')
-    # don't filter out anything
+    # convert format_strs into a filter object
     format_strs = filter(None, format_strs)
     output_formats = [make_output_format(f, dir, log_suffix) for f in format_strs]
 

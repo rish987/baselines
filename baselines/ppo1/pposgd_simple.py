@@ -80,7 +80,6 @@ def add_vtarg_and_adv(seg, gamma, lam):
     # to lambda
     seg["tdlamret"] = seg["adv"] + seg["vpred"]
 
-#TODO: investigate (review function after reading)
 def learn(env, policy_fn, *,
         timesteps_per_actorbatch, # timesteps per actor per update
         clip_param, entcoeff, # clipping parameter epsilon, entropy coeff
@@ -106,21 +105,25 @@ def learn(env, policy_fn, *,
 
     # retrieve ob placeholder
     ob = U.get_placeholder_cached(name="ob")
-    # get a 2d placeholder for a 1d action
+    # get a 2d placeholder for a list of 1d action
     ac = pi.pdtype.sample_placeholder([None])
 
     # get tensor for the KL-divergence between the old and new action gaussians
     kloldnew = oldpi.pd.kl(pi.pd)
     # get tensor for the entropy of the new action gaussian
     ent = pi.pd.entropy()
-    # these should do nothing
+    # take the mean of all kl divergences and entropies
     meankl = tf.reduce_mean(kloldnew)
     meanent = tf.reduce_mean(ent)
     pol_entpen = (-entcoeff) * meanent
 
+    #TODO: investigate whether this reduces over multiple actions
     ratio = tf.exp(pi.pd.logp(ac) - oldpi.pd.logp(ac)) # pnew / pold
+    import sys
+    sys.exit()
     surr1 = ratio * atarg # surrogate from conservative policy iteration
-    surr2 = tf.clip_by_value(ratio, 1.0 - clip_param, 1.0 + clip_param) * atarg #
+    surr2 = tf.clip_by_value(ratio, 1.0 - clip_param, 1.0 + clip_param) * atarg
+    # take the average to get the expected value of the current batch
     pol_surr = - tf.reduce_mean(tf.minimum(surr1, surr2)) # PPO's pessimistic surrogate (L^CLIP)
     vf_loss = tf.reduce_mean(tf.square(pi.vpred - ret))
     total_loss = pol_surr + pol_entpen + vf_loss

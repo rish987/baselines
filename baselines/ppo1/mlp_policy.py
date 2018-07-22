@@ -8,7 +8,7 @@ class MlpPolicy(object):
     recurrent = False
     def __init__(self, name, *args, **kwargs):
         with tf.variable_scope(name):
-            #TODO: investigate _init
+            #TODO: investigate _init()
             self._init(*args, **kwargs)
             self.scope = tf.get_variable_scope().name
 
@@ -52,6 +52,7 @@ class MlpPolicy(object):
 
         self.pd = pdtype.pdfromflat(pdparam)
 
+        # apparently unnecessary
         self.state_in = []
         self.state_out = []
 

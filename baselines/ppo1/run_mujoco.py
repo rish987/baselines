@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-
+# TODO remove
+import sys;
 from baselines.common.cmd_util import make_mujoco_env, mujoco_arg_parser
 from baselines.common import tf_util as U
 from baselines import logger
@@ -12,6 +13,7 @@ def train(env_id, num_timesteps, seed):
         return mlp_policy.MlpPolicy(name=name, ob_space=ob_space, ac_space=ac_space,
             hid_size=64, num_hid_layers=2)
     env = make_mujoco_env(env_id, seed)
+    #TODO: investigate pposgd_simple.learn()
     pposgd_simple.learn(env, policy_fn,
             max_timesteps=num_timesteps,
             timesteps_per_actorbatch=2048,
@@ -24,6 +26,7 @@ def train(env_id, num_timesteps, seed):
 def main():
     args = mujoco_arg_parser().parse_args()
     logger.configure()
+    #TODO: investigate train()
     train(args.env, num_timesteps=args.num_timesteps, seed=args.seed)
 
 if __name__ == '__main__':

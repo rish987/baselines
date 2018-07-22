@@ -4,7 +4,6 @@ import tensorflow as tf, baselines.common.tf_util as U, numpy as np
 class RunningMeanStd(object):
     # https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Parallel_algorithm
     def __init__(self, epsilon=1e-2, shape=()):
-
         self._sum = tf.get_variable(
             dtype=tf.float64,
             shape=shape,
