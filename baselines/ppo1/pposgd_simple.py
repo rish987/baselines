@@ -62,7 +62,6 @@ def traj_segment_generator(pi, env, horizon, stochastic):
         t += 1
 
 def add_vtarg_and_adv(seg, gamma, lam):
-    #TODO: investigate (review) TD(lambda) and GAE(lambda)
     """
     Compute target value using TD(lambda) estimator, and advantage with GAE(lambda)
     """
@@ -117,10 +116,7 @@ def learn(env, policy_fn, *,
     meanent = tf.reduce_mean(ent)
     pol_entpen = (-entcoeff) * meanent
 
-    #TODO: investigate whether this reduces over multiple actions
     ratio = tf.exp(pi.pd.logp(ac) - oldpi.pd.logp(ac)) # pnew / pold
-    import sys
-    sys.exit()
     surr1 = ratio * atarg # surrogate from conservative policy iteration
     surr2 = tf.clip_by_value(ratio, 1.0 - clip_param, 1.0 + clip_param) * atarg
     # take the average to get the expected value of the current batch
@@ -153,6 +149,8 @@ def learn(env, policy_fn, *,
     rewbuffer = deque(maxlen=100) # rolling buffer for episode rewards
 
     assert sum([max_iters>0, max_timesteps>0, max_episodes>0, max_seconds>0])==1, "Only one time constraint permitted"
+
+    result = 0;
 
     while True:
         if callback: callback(locals(), globals())
@@ -194,7 +192,6 @@ def learn(env, policy_fn, *,
             losses = [] # list of tuples, each of which gives the loss for a minibatch
             for batch in d.iterate_once(optim_batchsize):
                 *newlosses, g = lossandgrad(batch["ob"], batch["ac"], batch["atarg"], batch["vtarg"], cur_lrmult)
-                #TODO: investigate adam.update()
                 adam.update(g, optim_stepsize * cur_lrmult)
                 losses.append(newlosses)
             logger.log(fmt_row(13, np.mean(losses, axis=0)))
@@ -215,7 +212,9 @@ def learn(env, policy_fn, *,
         lenbuffer.extend(lens)
         rewbuffer.extend(rews)
         logger.record_tabular("EpLenMean", np.mean(lenbuffer))
-        logger.record_tabular("EpRewMean", np.mean(rewbuffer))
+        rewmean = np.mean(rewbuffer);
+        result = rewmean;
+        logger.record_tabular("EpRewMean", rewmean)
         logger.record_tabular("EpThisIter", len(lens))
         episodes_so_far += len(lens)
         timesteps_so_far += sum(lens)
@@ -226,7 +225,7 @@ def learn(env, policy_fn, *,
         if MPI.COMM_WORLD.Get_rank()==0:
             logger.dump_tabular()
 
-    return pi
+    return pi, result
 
 def flatten_lists(listoflists):
     return [el for list_ in listoflists for el in list_]
