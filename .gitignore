@@ -35,4 +35,12 @@ src
 
 MUJOCO_LOG.TXT
 
-
+.*.sw*
+*.pyc
+temp*
+*/__pycache__/*
+*/en
+*.aux
+*.out
+*.log
+*.synctex.gz

@@ -4,7 +4,7 @@ import sys
 import numpy as np
 import pickle
 
-graph_imgs_format = "graphs/{0}.pgf"
+graph_imgs_format = "reports/graphs/{0}.pgf"
 
 env = sys.argv[1]
 
