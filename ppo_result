@@ -1,7 +1,7 @@
-InvertedPendulum-v2 result: 1000.0
-Reacher-v2 result: -7.384179322786004
-InvertedDoublePendulum-v2 result: 386.3180900614748
-HalfCheetah-v2 result: 994.5727024942437
-Hopper-v2 result: 743.2660593424007
-Swimmer-v2 result: 51.91316360391234
-Walker2d-v2 result: 619.1381470419642
+InvertedPendulum-v2 result: 981.84
+Reacher-v2 result: -8.96251273216306
+InvertedDoublePendulum-v2 result: 449.89812934785084
+HalfCheetah-v2 result: 691.5885617043298
+Hopper-v2 result: 681.9355564125731
+Swimmer-v2 result: 43.45513359487924
+Walker2d-v2 result: 394.7490188135508
