@@ -89,6 +89,10 @@ def learn(env, policy_fn, *,
         adam_epsilon=1e-5,
         schedule='constant' # annealing for stepsize parameters (epsilon and adam)
         ):
+    # to store (timestep, min_reward, max_reward, avg_reward) tuples from each
+    # iteration
+    graph_data = [];
+
     # Setup losses and stuff
     # ----------------------------------------
     ob_space = env.observation_space
@@ -213,11 +217,14 @@ def learn(env, policy_fn, *,
         rewbuffer.extend(rews)
         logger.record_tabular("EpLenMean", np.mean(lenbuffer))
         rewmean = np.mean(rewbuffer);
+        rewmin = np.min(rewbuffer);
+        rewmax = np.max(rewbuffer);
+        timesteps_so_far += sum(lens)
+        graph_data.append((timesteps_so_far, rewmin, rewmax, rewmean));
         result = rewmean;
         logger.record_tabular("EpRewMean", rewmean)
         logger.record_tabular("EpThisIter", len(lens))
         episodes_so_far += len(lens)
-        timesteps_so_far += sum(lens)
         iters_so_far += 1
         logger.record_tabular("EpisodesSoFar", episodes_so_far)
         logger.record_tabular("TimestepsSoFar", timesteps_so_far)
@@ -225,7 +232,7 @@ def learn(env, policy_fn, *,
         if MPI.COMM_WORLD.Get_rank()==0:
             logger.dump_tabular()
 
-    return pi, result
+    return pi, result, graph_data
 
 def flatten_lists(listoflists):
     return [el for list_ in listoflists for el in list_]
