@@ -104,7 +104,7 @@ def learn(env, policy_fn, *,
 
     # learning rate multiplier, updated according to the schedule
     lrmult = tf.placeholder(name='lrmult', dtype=tf.float32, shape=[]) 
-    clip_param = clip_param * lrmult # Annealed cliping parameter epislon
+    #clip_param = clip_param * lrmult # Annealed cliping parameter epislon
 
     # retrieve ob placeholder
     ob = U.get_placeholder_cached(name="ob")
