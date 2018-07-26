@@ -10,7 +10,7 @@ graph_imgs_format = "reports/graphs/{0}.pgf"
 for env in environments:
     graph_datas = []
 
-    for run in range(3):
+    for run in range(1):
         graphfile = graphfile_format.format(env, run)
         with open(graphfile, 'rb') as file:
             graph_datas.append(pickle.load(file))
@@ -20,8 +20,8 @@ for env in environments:
     timesteps, min_rews, max_rews, avg_rews = graph_data;
     plt.figure()
 
-    plt.ylabel("Number of Timesteps")
-    plt.xlabel("Reward")
+    plt.ylabel("Average Reward over Last 100 Episodes")
+    plt.xlabel("Number of Timesteps")
     plt.title("{0} PPO Results".format(env))
 
     plt.plot(timesteps, avg_rews, linestyle='-', color=(0.0, 0.0, 0.0))

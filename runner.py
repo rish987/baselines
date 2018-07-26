@@ -19,12 +19,12 @@ environments = ['InvertedPendulum-v2', 'Reacher-v2',\
     'InvertedDoublePendulum-v2', 'HalfCheetah-v2', 'Hopper-v2',\
     'Swimmer-v2', 'Walker2d-v2']
 
-def main(ppo):
+def main(ppo, graph):
     resultfile_dest = resultfile_ppo if ppo else resultfile_rand
     command_format = ppo_command_format if ppo else rand_command_format
     rename_resultfile_command = \
         rename_file_command_format.format(resultfile, resultfile_dest)
-    runs = 3 if ppo else 1
+    runs = 3 if (ppo and not graph) else 1
 
     # clear file
     with open(resultfile, 'w+') as file:
@@ -45,4 +45,5 @@ def main(ppo):
 
 if __name__ == '__main__':
     ppo = sys.argv[1] == 'ppo'
-    main(ppo)
+    graph = sys.argv[2] == 'graph'
+    main(ppo, graph)
