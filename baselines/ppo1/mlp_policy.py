@@ -26,8 +26,8 @@ class MlpPolicy(object):
         # construct value function estimator
         with tf.variable_scope('vf'):
             # to store clipped normalized current input observation
-            #obz = tf.clip_by_value((ob - self.ob_rms.mean) / self.ob_rms.std, -5.0, 5.0)
-            obz = ob
+            obz = tf.clip_by_value((ob - self.ob_rms.mean) / self.ob_rms.std, -5.0, 5.0)
+            #obz = ob
             # last layer is input obz
             last_out = obz
             for i in range(num_hid_layers):

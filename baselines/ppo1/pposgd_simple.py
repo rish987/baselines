@@ -143,7 +143,8 @@ def learn(env, policy_fn, *,
 
     # Prepare for rollouts
     # ----------------------------------------
-    seg_gen = traj_segment_generator(pi, env, timesteps_per_actorbatch, stochastic=True)
+    seg_gen = traj_segment_generator(pi, env, timesteps_per_actorbatch,
+        stochastic=True)
 
     episodes_so_far = 0
     timesteps_so_far = 0
@@ -182,7 +183,7 @@ def learn(env, policy_fn, *,
         # ob, ac, atarg, ret, td1ret = map(np.concatenate, (obs, acs, atargs, rets, td1rets))
         ob, ac, atarg, tdlamret = seg["ob"], seg["ac"], seg["adv"], seg["tdlamret"]
         vpredbefore = seg["vpred"] # predicted value function before udpate
-        #atarg = (atarg - atarg.mean()) / atarg.std() # standardized advantage function estimate
+        atarg = (atarg - atarg.mean()) / atarg.std() # standardized advantage function estimate
         d = Dataset(dict(ob=ob, ac=ac, atarg=atarg, vtarg=tdlamret), shuffle=not pi.recurrent)
         optim_batchsize = optim_batchsize or ob.shape[0]
 
