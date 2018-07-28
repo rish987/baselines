@@ -3,6 +3,7 @@ from baselines import logger
 import baselines.common.tf_util as U
 import tensorflow as tf, numpy as np
 import time
+import pickle
 from baselines.common.mpi_adam import MpiAdam
 from baselines.common.mpi_moments import mpi_moments
 from mpi4py import MPI
@@ -139,6 +140,40 @@ def learn(env, policy_fn, *,
     compute_losses = U.function([ob, ac, atarg, ret, lrmult], losses)
 
     U.initialize()
+    # TODO remove experimenting -
+    name_correspondences = \
+    {
+        "fc1/kernel":"fc.0.weight",
+        "fc1/bias":"fc.0.bias",
+        "fc2/kernel":"fc.1.weight",
+        "fc2/bias":"fc.1.bias",
+        "final/kernel":"fc.2.weight",
+        "final/bias":"fc.2.bias",
+    }
+    for tf_name, torch_name, out_var in [('pi/vf', 'value_net', pi.vpred),\
+            ('pi/pol', 'pol_net', pi.mean)]:
+        value_dict = {}
+
+        prefix = tf_name
+
+        for var in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, prefix):
+            name = var.name[(len(prefix) + 1):-2]
+            if "logstd" in name:
+                continue
+            value = tf.get_default_session().run(var)
+            kernel = "kernel" in name
+            if kernel:
+                value = value.T
+            value_dict[name_correspondences[name]] = value
+        with open(torch_name + '_state_dict', \
+            'wb+') as file:
+            pickle.dump(value_dict, file);
+
+        print(tf.get_default_session().run(out_var,\
+            feed_dict={ob:np.array([[1.0, 2.0, 3.0, 4.0]])}))
+
+    # - TODO remove experimenting
+    
     adam.sync()
 
     # Prepare for rollouts
@@ -198,6 +233,7 @@ def learn(env, policy_fn, *,
             for batch in d.iterate_once(optim_batchsize):
                 *newlosses, g = lossandgrad(batch["ob"], batch["ac"], batch["atarg"], batch["vtarg"], cur_lrmult)
                 adam.update(g, optim_stepsize * cur_lrmult)
+                #logger.log(fmt_row(13, newlosses))
                 losses.append(newlosses)
             logger.log(fmt_row(13, np.mean(losses, axis=0)))
 
