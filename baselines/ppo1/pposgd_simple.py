@@ -11,7 +11,7 @@ from collections import deque
 
 def traj_segment_generator(pi, env, horizon, stochastic):
     t = 0
-    ac = env.action_space.sample() # not used, just so we have the datatype
+    ac = np.zeros(env.action_space.shape[0])# not used, just so we have the datatype
     new = True # marks if we're on first timestep of an episode
     ob = env.reset()
 
@@ -214,17 +214,54 @@ def learn(env, policy_fn, *,
 
         seg = seg_gen.__next__()
         add_vtarg_and_adv(seg, gamma, lam)
+        # TODO remove
+        with open('acs', 'wb+') as file:
+            pickle.dump(seg['ac'], file);
+        # remove TODO
 
         # ob, ac, atarg, ret, td1ret = map(np.concatenate, (obs, acs, atargs, rets, td1rets))
         ob, ac, atarg, tdlamret = seg["ob"], seg["ac"], seg["adv"], seg["tdlamret"]
+
+        assign_old_eq_new() # set old parameter values to new parameter values
+        # TODO remove
+        *losses, g = lossandgrad(seg["ob"], seg["ac"], seg["adv"],
+            seg["tdlamret"], cur_lrmult)
+        ratio_res = tf.get_default_session().run(ratio, feed_dict=\
+        {
+            lossandgrad.inputs[0]: seg["ob"],
+            lossandgrad.inputs[1]: seg["ac"],
+            lossandgrad.inputs[2]: seg["adv"],
+            lossandgrad.inputs[3]: seg["tdlamret"]
+        }
+        )
+        surr_res = tf.get_default_session().run(surr1, feed_dict=\
+        {
+            lossandgrad.inputs[0]: seg["ob"],
+            lossandgrad.inputs[1]: seg["ac"],
+            lossandgrad.inputs[2]: seg["adv"],
+            lossandgrad.inputs[3]: seg["tdlamret"]
+        }
+        )
+        pred_vals = tf.get_default_session().run(pi.vpred, feed_dict=\
+        {
+            lossandgrad.inputs[0]: seg["ob"],
+            lossandgrad.inputs[1]: seg["ac"],
+            lossandgrad.inputs[2]: seg["adv"],
+            lossandgrad.inputs[3]: seg["tdlamret"]
+        })
+        print(losses[0], losses[2])
+        print(seg["tdlamret"])
+        print(pred_vals)
+        import sys
+        sys.exit()
+        # remove TODO
+
         vpredbefore = seg["vpred"] # predicted value function before udpate
         #atarg = (atarg - atarg.mean()) / atarg.std() # standardized advantage function estimate
         d = Dataset(dict(ob=ob, ac=ac, atarg=atarg, vtarg=tdlamret), shuffle=not pi.recurrent)
         optim_batchsize = optim_batchsize or ob.shape[0]
 
         if hasattr(pi, "ob_rms"): pi.ob_rms.update(ob) # update running mean/std for policy
-
-        assign_old_eq_new() # set old parameter values to new parameter values
         logger.log("Optimizing...")
         logger.log(fmt_row(13, loss_names))
         # Here we do a bunch of optimization epochs over the data
@@ -268,6 +305,10 @@ def learn(env, policy_fn, *,
         logger.record_tabular("TimeElapsed", time.time() - tstart)
         if MPI.COMM_WORLD.Get_rank()==0:
             logger.dump_tabular()
+
+        # TODO remove
+        import sys
+        sys.exit()
 
     return pi, result, graph_data
 
